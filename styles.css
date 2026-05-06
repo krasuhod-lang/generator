@@ -660,6 +660,164 @@ a {
 }
 .achievement .ach-icon { font-size: 20px; }
 
+/* =========================================================
+   v2: Расширенные элементы карточек для новых категорий
+   ========================================================= */
+
+/* Бейдж "TOP #1" / "Дешевле всех" */
+.offer-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    background: linear-gradient(135deg, #f5a524, #ff7a00);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+/* Тег программы (ипотека) */
+.program-tag {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 4px 10px;
+    background: var(--c-primary-soft);
+    color: var(--c-primary);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Хайлайт-блок (кэшбэк за год / выгода рефинанса) */
+.offer-highlight {
+    padding: 8px 10px;
+    background: rgba(24, 184, 107, 0.08);
+    border: 1px solid rgba(24, 184, 107, 0.25);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--c-text);
+}
+.offer-highlight.warn {
+    background: rgba(245, 165, 36, 0.1);
+    border-color: rgba(245, 165, 36, 0.3);
+}
+
+.offer-amount.good { color: var(--c-accent); }
+.offer-amount.bad  { color: var(--c-danger); }
+.offer-row b.good  { color: var(--c-accent); }
+.offer-row b.bad   { color: var(--c-danger); }
+
+/* Широкая карточка (ипотека) */
+.offer-card-wide { min-width: 320px; max-width: 360px; }
+
+/* Сравнительная таблица "С господдержкой vs Рыночная" */
+.mortgage-compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 4px 0;
+}
+.mortgage-compare th, .mortgage-compare td {
+    padding: 6px 4px;
+    text-align: right;
+    border-bottom: 1px solid var(--c-border);
+}
+.mortgage-compare th:first-child, .mortgage-compare td:first-child {
+    text-align: left;
+    color: var(--c-muted);
+}
+.mortgage-compare th {
+    color: var(--c-muted);
+    font-weight: 600;
+}
+.mortgage-compare th:nth-child(2) { color: var(--c-accent); }
+
+/* Калькулятор переплаты (кредиты) */
+.compare-table {
+    margin: 8px 12px 4px;
+    padding: 12px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    font-size: 13px;
+}
+.compare-table .compare-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--c-primary);
+}
+.compare-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.compare-table th, .compare-table td {
+    padding: 6px 8px;
+    text-align: right;
+    border-bottom: 1px solid var(--c-border);
+}
+.compare-table th:first-child, .compare-table td:first-child { text-align: left; }
+.compare-table th { color: var(--c-muted); font-weight: 600; font-size: 12px; }
+.compare-table td.good { color: var(--c-accent); font-weight: 700; }
+.compare-table td.bad  { color: var(--c-danger); }
+
+/* Тикер дохода (вклады) */
+.ticker-block {
+    margin-top: 4px;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(24, 184, 107, 0.08), rgba(91, 70, 214, 0.06));
+    border-radius: 12px;
+    text-align: center;
+}
+.ticker-label {
+    font-size: 12px;
+    color: var(--c-muted);
+    margin-bottom: 4px;
+}
+.ticker-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--c-accent);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+}
+.ticker-final {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--c-muted);
+}
+.ticker-final b { color: var(--c-text); }
+
+/* АСВ-бейдж */
+.asv-badge {
+    padding: 6px 10px;
+    background: rgba(10, 41, 115, 0.06);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--c-text);
+    text-align: center;
+}
+.asv-badge.warn {
+    background: rgba(245, 165, 36, 0.12);
+    color: #8a5a00;
+}
+
+/* Magic-link CTA */
+.magic-link-btn {
+    display: inline-block;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-2));
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-top: 4px;
+    text-decoration: none;
+}
+.magic-link-btn:hover { opacity: 0.92; }
+
 /* ---------- Адаптив ---------- */
 @media (max-width: 900px) {
     .hero-inner { grid-template-columns: 1fr; }

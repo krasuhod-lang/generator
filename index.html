@@ -31,8 +31,8 @@
             <div class="hero-text">
                 <h1>Деньги <span class="accent">в один клик</span>,<br />одобрение — за 2 минуты</h1>
                 <p class="lead">
-                    Подбираем для вас займы от 40+ МФО-партнёров. Один запрос — десятки предложений.
-                    А наш AI-помощник <b>Сенсей</b> подскажет, где точно одобрят.
+                    Подбираем для вас займы, кредиты, ипотеку, карты, страхование, вклады и рефинансирование
+                    среди банков и МФО-партнёров. А наш AI-помощник <b>Сенсей</b> подскажет, где точно одобрят.
                 </p>
                 <div class="hero-cta">
                     <button class="btn btn-primary btn-lg" id="open-chat-cta">Поговорить с Сенсеем</button>
@@ -160,6 +160,23 @@
             </div>
         </footer>
     </div>
+
+    <!-- ===== Скрипты Сенсея v2 (порядок важен: core → categories → bootstrap) ===== -->
+    <script src="core/state.js"></script>
+    <script src="core/util.js"></script>
+    <script src="core/kb.js"></script>
+    <script src="core/nlp.js"></script>
+    <script src="core/render.js"></script>
+    <script src="core/dialog.js"></script>
+    <script src="core/api.js"></script>
+
+    <script src="categories/loans.js"></script>
+    <script src="categories/credits.js"></script>
+    <script src="categories/mortgages.js"></script>
+    <script src="categories/cards.js"></script>
+    <script src="categories/insurance.js"></script>
+    <script src="categories/deposits.js"></script>
+    <script src="categories/refinancing.js"></script>
 
     <script src="app.js"></script>
 </body>
