@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Выручай — деньги, когда они нужны | Сенсей подберёт займ</title>
+    <meta name="description" content="Сервис подбора микрозаймов «Выручай». AI-помощник Сенсей подберёт оффер с одобрением до 98%." />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- ===== Шапка сайта (имитация viruchay.ru) ===== -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <span class="logo-mark">В</span>
+                <span class="logo-text">Выручай</span>
+            </a>
+            <nav class="site-nav">
+                <a href="#offers">Займы</a>
+                <a href="#how">Как это работает</a>
+                <a href="#faq">Вопросы</a>
+                <a href="#contacts">Контакты</a>
+            </nav>
+            <a href="#" class="btn btn-primary btn-sm">Личный кабинет</a>
+        </div>
+    </header>
+
+    <!-- ===== Hero-блок ===== -->
+    <section class="hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <h1>Деньги <span class="accent">в один клик</span>,<br />одобрение — за 2 минуты</h1>
+                <p class="lead">
+                    Подбираем для вас займы от 40+ МФО-партнёров. Один запрос — десятки предложений.
+                    А наш AI-помощник <b>Сенсей</b> подскажет, где точно одобрят.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn btn-primary btn-lg" id="open-chat-cta">Поговорить с Сенсеем</button>
+                    <a href="#offers" class="btn btn-ghost btn-lg">Смотреть офферы</a>
+                </div>
+                <ul class="hero-bullets">
+                    <li>✓ Сумма до 500 000 ₽</li>
+                    <li>✓ Ставка от 0,11% в день</li>
+                    <li>✓ Первый займ под 0%</li>
+                </ul>
+            </div>
+            <div class="hero-card">
+                <div class="hero-card-title">Шкала шансов одобрения</div>
+                <div class="offer-mini">
+                    <div class="offer-mini-row">
+                        <span>МКК «Выручай-деньги»</span><b>30 000 ₽</b>
+                    </div>
+                    <div class="bar"><div class="bar-fill" style="width: 95%"></div></div>
+                    <div class="offer-mini-row muted"><span>Шанс одобрения</span><b>95%</b></div>
+                </div>
+                <div class="offer-mini">
+                    <div class="offer-mini-row">
+                        <span>Партнёр «БыстроКредит»</span><b>30 000 ₽</b>
+                    </div>
+                    <div class="bar"><div class="bar-fill warn" style="width: 78%"></div></div>
+                    <div class="offer-mini-row muted"><span>Шанс одобрения</span><b>78%</b></div>
+                </div>
+                <div class="offer-mini">
+                    <div class="offer-mini-row">
+                        <span>«ДеньгиЛегко»</span><b>30 000 ₽</b>
+                    </div>
+                    <div class="bar"><div class="bar-fill" style="width: 88%"></div></div>
+                    <div class="offer-mini-row muted"><span>Шанс одобрения</span><b>88%</b></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Как это работает ===== -->
+    <section class="section" id="how">
+        <div class="container">
+            <h2>Как работает Сенсей</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h3>Расскажите о цели</h3>
+                    <p>«Нужно 30 тысяч до зарплаты» — Сенсей сам поймёт сумму и срок.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h3>Ответьте на 3 вопроса</h3>
+                    <p>Никаких анкет на 20 полей. Только то, что нужно для скоринга.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h3>Выберите оффер</h3>
+                    <p>Карусель с шкалой одобрения. Один клик — и вы в защищённом ЛК.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ-якорь ===== -->
+    <section class="section section-muted" id="faq">
+        <div class="container">
+            <h2>Часто спрашивают</h2>
+            <div class="faq-grid">
+                <div class="faq-item"><b>Можно ли погасить досрочно?</b><p>Да, без штрафов. Спросите у Сенсея — он даст ссылку.</p></div>
+                <div class="faq-item"><b>Какие требования к заёмщику?</b><p>Гражданство РФ, возраст 18–70 лет, паспорт.</p></div>
+                <div class="faq-item"><b>Что, если КИ испорчена?</b><p>Сенсей предложит «Программу реабилитации» — путь к Дзену.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="container">© Выручай, 2026 · Прототип AI-помощника «Сенсей»</div>
+    </footer>
+
+    <!-- ===== Плавающая иконка Сенсея + бейдж-подсказка ===== -->
+    <div class="sensei-launcher" id="sensei-launcher" aria-label="Открыть чат с Сенсеем">
+        <div class="sensei-bubble" id="sensei-bubble">
+            Нужны деньги? Помогу подобрать оффер с&nbsp;одобрением&nbsp;98%!
+            <button class="sensei-bubble-close" id="sensei-bubble-close" aria-label="Закрыть подсказку">×</button>
+        </div>
+        <button class="sensei-fab" id="sensei-fab" aria-label="Сенсей">
+            <span class="sensei-avatar" aria-hidden="true">🥋</span>
+            <span class="sensei-pulse"></span>
+        </button>
+    </div>
+
+    <!-- ===== Окно чата (Telegram-like) ===== -->
+    <div class="chat-window" id="chat-window" hidden>
+        <header class="chat-header">
+            <div class="chat-header-left">
+                <div class="chat-avatar">🥋</div>
+                <div>
+                    <div class="chat-title">Сенсей</div>
+                    <div class="chat-status"><span class="dot"></span> на связи · отвечает мгновенно</div>
+                </div>
+            </div>
+            <div class="chat-header-right">
+                <div class="level-badge" title="Ваш уровень финансового здоровья">
+                    <span class="level-icon">🌱</span>
+                    <span id="level-name">Ученик</span>
+                </div>
+                <button class="icon-btn" id="chat-close" aria-label="Свернуть чат">—</button>
+            </div>
+        </header>
+
+        <main class="chat-body" id="chat-body" aria-live="polite"></main>
+
+        <footer class="chat-footer">
+            <div class="quick-replies" id="quick-replies"></div>
+            <form class="chat-input" id="chat-form" autocomplete="off">
+                <input
+                    type="text"
+                    id="chat-input"
+                    placeholder="Напишите Сенсею…"
+                    aria-label="Сообщение Сенсею"
+                />
+                <button type="submit" class="send-btn" aria-label="Отправить">➤</button>
+            </form>
+            <div class="chat-disclaimer">
+                Сенсей не запрашивает паспортные данные в чате. Скан паспорта — только в защищённом ЛК.
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
