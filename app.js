@@ -49,6 +49,7 @@
     // Главное меню v2 (ТЗ §1.8)
     // =========================================================
     var MAIN_MENU = [
+        { label: '🎯 Узнать шансы за 1 минуту', payload: 'cat:prequalification' },
         { label: '💰 Займ (до 500К)',     payload: 'cat:loan' },
         { label: '🏦 Кредит наличными',   payload: 'cat:credit' },
         { label: '🏠 Ипотека',            payload: 'cat:mortgage' },
@@ -315,6 +316,11 @@
     // Авто-показ бейджа-подсказки через 2.5 сек после загрузки
     bubble.classList.add('hidden');
     setTimeout(function () { bubble.classList.remove('hidden'); }, 2500);
+
+    // Cookie-баннер (152-ФЗ): показывается, если пользователь ещё не сделал выбор.
+    if (ns.consent && typeof ns.consent.initCookieBanner === 'function') {
+        ns.consent.initCookieBanner();
+    }
 
     // Экспорт для отладки и обратной совместимости со Sprint 1
     window.__sensei = ns;

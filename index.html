@@ -161,6 +161,32 @@
         </footer>
     </div>
 
+    <!-- ===== Cookie-баннер (152-ФЗ / см. core/consent.js) =====
+         По умолчанию скрыт — core/consent.js → initCookieBanner()
+         покажет, если пользователь ещё не сделал выбор. -->
+    <div id="cookie-banner" class="cookie-banner" hidden role="dialog"
+         aria-labelledby="cookie-banner-title">
+        <div class="cookie-banner-inner">
+            <div class="cookie-banner-text">
+                <b id="cookie-banner-title">Куки и хранение</b>
+                <span>
+                    Мы используем <b>только свои</b> куки и localStorage.
+                    «Необходимые» — для работы виджета (session_id).
+                    «UX» (опционально) — чтобы запоминать прогресс квиза
+                    при перезагрузке страницы. Никаких трекеров и третьих сторон.
+                </span>
+            </div>
+            <div class="cookie-banner-actions">
+                <button type="button" class="btn btn-ghost btn-sm" data-cookie="essential">
+                    Только необходимые
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" data-cookie="all">
+                    Принять всё
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== Скрипты Сенсея v2 (порядок важен: core → categories → bootstrap) ===== -->
     <script src="core/state.js"></script>
     <script src="core/util.js"></script>
@@ -169,6 +195,7 @@
     <script src="core/render.js"></script>
     <script src="core/dialog.js"></script>
     <script src="core/api.js"></script>
+    <script src="core/consent.js"></script>
 
     <script src="categories/loans.js"></script>
     <script src="categories/credits.js"></script>
@@ -177,6 +204,7 @@
     <script src="categories/insurance.js"></script>
     <script src="categories/deposits.js"></script>
     <script src="categories/refinancing.js"></script>
+    <script src="categories/prequalification.js"></script>
 
     <script src="app.js"></script>
 </body>

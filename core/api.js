@@ -83,9 +83,63 @@
         }).then(function (r) { return r.json(); });
     }
 
+    /**
+     * Запрос кредитной истории в БКИ.
+     *
+     * Mock. Реальный скоринг — на бэкенде, после согласия (218-ФЗ
+     * «О кредитных историях», ст. 6) и идентификации, через API БКИ
+     * (НБКИ / ОКБ / Скоринг Бюро).
+     *
+     * TODO (продакшн): здесь — серверный вызов к НБКИ/ОКБ через бэкенд
+     *   POST /api/v1/bki/request
+     *   { session_id, consent_id, fio, dob, passport, subject_code }
+     *   c обязательным хранением подписанного согласия пользователя
+     *   на стороне сервера (не на клиенте!).
+     *
+     * Поля анкеты (паспорт, ДР, код субъекта КИ) в прототипе
+     * НЕ сохраняются нигде — они используются только для имитации
+     * вызова и сразу отбрасываются. Это намеренно.
+     */
+    function getCreditScore(_inquiry) {
+        if (USE_MOCK) {
+            // Псевдо-случайный, но детерминированный по session_id скор:
+            // прототип должен показывать стабильный результат в рамках сессии.
+            var sid = (ns.state && ns.state.sessionId) || 'x';
+            var seed = 0;
+            for (var i = 0; i < sid.length; i++) seed = (seed * 31 + sid.charCodeAt(i)) >>> 0;
+            var score = 500 + (seed % 350); // 500..849
+            var grade = score >= 750 ? 'A' : score >= 650 ? 'B' : score >= 580 ? 'C' : 'D';
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    resolve({
+                        score: score,
+                        grade: grade,
+                        // Подсветим, что это мок — UI это явно покажет.
+                        mock: true,
+                        bureau: 'mock-bki',
+                        generated_at: new Date().toISOString(),
+                    });
+                }, 700);
+            });
+        }
+        // === Прод-вариант ===
+        // ВАЖНО: запрос идёт ТОЛЬКО на наш бэкенд. Прямые обращения к БКИ
+        // из браузера невозможны и небезопасны.
+        return fetch('/api/v1/bki/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: ns.state.sessionId,
+                // Анкетные поля передаются один раз и не сохраняются на клиенте.
+                inquiry: _inquiry,
+            }),
+        }).then(function (r) { return r.json(); });
+    }
+
     ns.api = {
         getOffers: getOffers,
         getMagicLink: getMagicLink,
+        getCreditScore: getCreditScore,
         registerMockOffers: registerMockOffers,
         get useMock() { return USE_MOCK; },
         setUseMock: function (v) { USE_MOCK = !!v; },
