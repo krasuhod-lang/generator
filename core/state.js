@@ -95,6 +95,8 @@
         state.category = null;
         state.schemaStep = 0;
         state.answers = {};
+        state.stepHistory = [];
+        state.preFill = null;
     }
 
     ns.state = state;
