@@ -76,6 +76,63 @@
         return null;
     }
 
+    /**
+     * Извлечь номер российского мобильного телефона из свободного текста.
+     * Возвращает строку в формате '+7XXXXXXXXXX' либо null.
+     *
+     * Не валидирует «существование» номера — это задача SMS-провайдера;
+     * проверяем только формат RU mobile (код 9XX).
+     */
+    function parsePhone(text) {
+        if (text == null) return null;
+        // Берём подстроку, похожую на номер: цифры, пробелы, скобки, дефисы, «+».
+        var s = String(text).match(/(?:\+?\d[\d\s().\-]{8,}\d)/);
+        if (!s) return null;
+        var digits = s[0].replace(/\D+/g, '');
+        if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8') && digits[1] === '9') {
+            return '+7' + digits.slice(1);
+        }
+        if (digits.length === 10 && digits[0] === '9') {
+            return '+7' + digits;
+        }
+        return null;
+    }
+
+    /**
+     * Извлечь email из свободного текста. Возвращает email в нижнем
+     * регистре или null. RFC 5322 сложен — ловим практичный подмножество.
+     */
+    function parseEmail(text) {
+        if (text == null) return null;
+        var m = String(text).match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+        return m ? m[0].toLowerCase() : null;
+    }
+
+    /**
+     * Извлечь дату из свободного текста. Поддерживает форматы:
+     *   ДД.ММ.ГГГГ / ДД-ММ-ГГГГ / ДД/ММ/ГГГГ
+     *   ДД.ММ.ГГ (двухзначный год → 19xx/20xx эвристикой)
+     *   «сегодня», «завтра», «вчера»
+     * Возвращает Date | null.
+     */
+    function parseDate(text) {
+        if (text == null) return null;
+        var t = String(text).trim().toLowerCase();
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        if (/^сегодня$/.test(t)) return today;
+        if (/^завтра$/.test(t)) { var d = new Date(today); d.setDate(d.getDate() + 1); return d; }
+        if (/^вчера$/.test(t))  { var d2 = new Date(today); d2.setDate(d2.getDate() - 1); return d2; }
+        var m = t.match(/(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})/);
+        if (!m) return null;
+        var dd = parseInt(m[1], 10), mm = parseInt(m[2], 10) - 1, yy = parseInt(m[3], 10);
+        if (yy < 100) yy += yy >= 50 ? 1900 : 2000;
+        if (dd < 1 || dd > 31 || mm < 0 || mm > 11) return null;
+        var dt = new Date(yy, mm, dd);
+        // Защита от «31 февраля» — Date «нормализует» молча.
+        if (dt.getDate() !== dd || dt.getMonth() !== mm) return null;
+        return dt;
+    }
+
     function parseTerm(text) {
         var t = String(text).toLowerCase();
         if (/до\s+(зарплат|получк)/.test(t)) return 30;
@@ -89,19 +146,46 @@
         return null;
     }
 
-    /** Детектор категории по триггерам. */
-    function detectCategory(text) {
+    /**
+     * Детектор категории по триггерам с возвратом кандидатов и веса.
+     * Чем больше совпавших триггеров — тем выше score.
+     * @returns {Array<{category:string, score:number, hits:string[]}>}
+     */
+    function detectCategoryCandidates(text) {
         var t = String(text).toLowerCase();
-        // refinancing проверяем первым (фразы вроде «рефинансировать ипотеку»
-        // должны попадать в refinancing, а не mortgage)
         var order = ['refinancing', 'mortgage', 'card', 'insurance', 'deposit', 'credit', 'loan'];
+        var out = [];
         for (var i = 0; i < order.length; i++) {
             var cat = order[i];
             var triggers = CATEGORY_TRIGGERS[cat];
+            var hits = [];
             for (var j = 0; j < triggers.length; j++) {
-                if (t.indexOf(triggers[j]) !== -1) return cat;
+                if (t.indexOf(triggers[j]) !== -1) hits.push(triggers[j]);
             }
+            if (hits.length) out.push({ category: cat, score: hits.length, hits: hits });
         }
+        out.sort(function (a, b) { return b.score - a.score; });
+        return out;
+    }
+
+    /** Детектор категории по триггерам. */
+    function detectCategory(text) {
+        var cands = detectCategoryCandidates(text);
+        return cands.length ? cands[0].category : null;
+    }
+
+    /**
+     * Глобальные команды управления диалогом, которые должны работать
+     * в любом контексте (даже внутри активного flow). Возвращает
+     * один из: 'menu' | 'restart' | 'back' | 'skip' | 'operator' | null.
+     */
+    function detectCommand(text) {
+        var t = String(text).toLowerCase().trim();
+        if (/^(в\s*меню|меню|main|home|главная)$/.test(t)) return 'menu';
+        if (/^(начать\s*заново|сначала|с\s*начала|reset|перезапуск)$/.test(t)) return 'restart';
+        if (/^(назад|back|вернись|вернуться)$/.test(t)) return 'back';
+        if (/^(пропустить|skip|пропуск|дальше)$/.test(t)) return 'skip';
+        if (/^(оператор|человек|менеджер|позови\s*человека)$/.test(t)) return 'operator';
         return null;
     }
 
@@ -126,8 +210,13 @@
     ns.nlp = {
         parseAmount: parseAmount,
         parseTerm: parseTerm,
+        parsePhone: parsePhone,
+        parseEmail: parseEmail,
+        parseDate: parseDate,
         detectCategory: detectCategory,
+        detectCategoryCandidates: detectCategoryCandidates,
         detectIntent: detectIntent,
+        detectCommand: detectCommand,
         CATEGORY_TRIGGERS: CATEGORY_TRIGGERS,
     };
 })();

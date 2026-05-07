@@ -50,6 +50,7 @@
         ns.state.category = category;
         ns.state.schemaStep = 0;
         ns.state.answers = {};
+        ns.state.stepHistory = [];
 
         var intro = def.intro;
         if (intro && intro.length) {
@@ -59,18 +60,48 @@
         }
     }
 
+    /**
+     * Попытаться авто-ответить на текущий шаг данными из state.preFill
+     * (например, сумма/срок, извлечённые из исходного сообщения
+     * пользователя «нужно 30к на 14 дней»). Возвращает true, если
+     * шаг был автоматически закрыт.
+     */
+    function tryConsumePreFill(step) {
+        var pf = ns.state.preFill;
+        if (!pf) return false;
+        if (!Object.prototype.hasOwnProperty.call(pf, step.id)) return false;
+        var v = pf[step.id];
+        // Удаляем pre-fill вне зависимости от исхода — чтобы не зациклить.
+        delete pf[step.id];
+        if (v == null || v === '') return false;
+        if (step.validate) {
+            var err = step.validate(v, ns.state);
+            if (err !== true) return false;
+        }
+        ns.state.answers[step.id] = v;
+        if (step.applyToProfile) step.applyToProfile(v, ns.state.userProfile);
+        return true;
+    }
+
     /** Перейти к следующему незаполненному шагу. */
     function askNext() {
         var def = registry[ns.state.category];
         if (!def) return;
         var schema = def.schema;
-        // пропускаем шаги со skipIf
-        while (
-            ns.state.schemaStep < schema.length &&
-            schema[ns.state.schemaStep].skipIf &&
-            schema[ns.state.schemaStep].skipIf(ns.state)
-        ) {
-            ns.state.schemaStep++;
+        // пропускаем шаги со skipIf или закрываем pre-fill'ом
+        while (ns.state.schemaStep < schema.length) {
+            var s = schema[ns.state.schemaStep];
+            if (s.skipIf && s.skipIf(ns.state)) {
+                ns.state.schemaStep++;
+                continue;
+            }
+            if (tryConsumePreFill(s)) {
+                ns.state.stepHistory.push(ns.state.schemaStep);
+                ns.state.schemaStep++;
+                _autosaveProgress();
+                continue;
+            }
+            break;
         }
         if (ns.state.schemaStep >= schema.length) {
             // Всё собрано — завершаем
@@ -82,9 +113,54 @@
             msgs = msgs.concat(step.intro);
         }
         msgs.push(step.prompt);
+        var qrs = (step.quickReplies || []).slice();
+        // Для опциональных шагов добавляем кнопку «Пропустить»
+        if (step.optional) {
+            qrs.push({ label: '↷ Пропустить', payload: 'flow:skip', variant: 'ghost' });
+        }
+        // Для шагов после первого добавляем «Назад»
+        if (ns.state.stepHistory && ns.state.stepHistory.length > 0) {
+            qrs.push({ label: '⟵ Назад', payload: 'flow:back', variant: 'ghost' });
+        }
         render.senseiSays(msgs, {
-            quickReplies: step.quickReplies || null,
+            quickReplies: qrs.length ? qrs : null,
         });
+    }
+
+    /** Вернуться на предыдущий шаг (если есть история). */
+    function back() {
+        var hist = ns.state.stepHistory || [];
+        if (!hist.length) return false;
+        var prev = hist.pop();
+        var def = registry[ns.state.category];
+        if (!def) return false;
+        var prevStep = def.schema[prev];
+        if (prevStep && prevStep.id) delete ns.state.answers[prevStep.id];
+        ns.state.schemaStep = prev;
+        // Не вызываем preFill повторно для возвращаемого шага.
+        if (ns.state.preFill && prevStep) delete ns.state.preFill[prevStep.id];
+        askNext();
+        return true;
+    }
+
+    /** Пропустить опциональный шаг. */
+    function skip() {
+        var def = registry[ns.state.category];
+        if (!def) return false;
+        var step = def.schema[ns.state.schemaStep];
+        if (!step || !step.optional) return false;
+        ns.state.stepHistory = ns.state.stepHistory || [];
+        ns.state.stepHistory.push(ns.state.schemaStep);
+        ns.state.schemaStep++;
+        _autosaveProgress();
+        askNext();
+        return true;
+    }
+
+    function _autosaveProgress() {
+        if (ns.consent && typeof ns.consent.saveQuizProgress === 'function') {
+            try { ns.consent.saveQuizProgress(ns.state); } catch (_e) { /* noop */ }
+        }
     }
 
     /**
@@ -115,7 +191,10 @@
         }
         ns.state.answers[step.id] = value;
         if (step.applyToProfile) step.applyToProfile(value, ns.state.userProfile);
+        ns.state.stepHistory = ns.state.stepHistory || [];
+        ns.state.stepHistory.push(ns.state.schemaStep);
         ns.state.schemaStep++;
+        _autosaveProgress();
         askNext();
         return true;
     }
@@ -144,7 +223,10 @@
         }
         ns.state.answers[step.id] = value;
         if (step.applyToProfile) step.applyToProfile(value, ns.state.userProfile);
+        ns.state.stepHistory = ns.state.stepHistory || [];
+        ns.state.stepHistory.push(ns.state.schemaStep);
         ns.state.schemaStep++;
+        _autosaveProgress();
         askNext();
         return true;
     }
@@ -163,6 +245,8 @@
         handleText: handleText,
         handleAnswerPayload: handleAnswerPayload,
         extractNumber: extractNumber,
+        back: back,
+        skip: skip,
     };
 
     // Реестр пользовательских payload-обработчиков (для калькуляторов категорий

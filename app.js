@@ -69,15 +69,36 @@
     /** Стартовое приветствие. */
     function startGreeting() {
         if (chatBody.childElementCount > 0) return; // уже здоровались
-        render.senseiSays(
-            [
-                'Здравствуйте! Я <b>Сенсей</b> 🥋 — ваш проводник на пути к финансовому дзену.',
-                'Я подбираю <b>займы, кредиты, ипотеку, карты, страхование, вклады и рефинансирование</b> ' +
-                'среди банков-партнёров, отвечаю на вопросы о сервисе «Выручай».',
-                'С чего начнём?',
-            ],
-            { quickReplies: MAIN_MENU }
-        );
+        var ctx = (ns.context && ns.context.get) ? ns.context.get() : null;
+        var prefix = (ns.context && ns.context.greetingPrefix)
+            ? ns.context.greetingPrefix() + ' '
+            : '';
+        var hint = (ns.context && ns.context.inferIntentHint) ? ns.context.inferIntentHint() : null;
+
+        var msgs = [
+            prefix + 'Я <b>Сенсей</b> 🥋 — ваш проводник на пути к финансовому дзену.',
+            'Я подбираю <b>займы, кредиты, ипотеку, карты, страхование, вклады и рефинансирование</b> ' +
+            'среди банков-партнёров, отвечаю на вопросы о сервисе «Выручай».',
+        ];
+
+        // Персональная подсветка по региону / возвращающемуся посетителю
+        if (ctx && ctx.visitor && ctx.visitor.isReturning && ctx.visitor.daysSinceLast != null && ctx.visitor.daysSinceLast > 0) {
+            msgs.push('Рад снова вас видеть. Продолжим с того, на чём остановились, или начнём заново?');
+        }
+
+        // Если из UTM/реферера понятно, какую категорию ищет посетитель — подсветим
+        var menu = MAIN_MENU;
+        if (hint) {
+            var hinted = MAIN_MENU.find(function (m) { return m.payload === 'cat:' + hint; });
+            if (hinted) {
+                msgs.push('Похоже, вас интересует <b>' + util.escapeHtml(hinted.label.replace(/^[^\sа-яА-Я]+\s*/, '')) + '</b>. Начнём с этого?');
+                // Поднимем подсказанный пункт в начало меню
+                menu = [hinted].concat(MAIN_MENU.filter(function (m) { return m !== hinted; }));
+            }
+        }
+        msgs.push('С чего начнём?');
+
+        render.senseiSays(msgs, { quickReplies: menu });
     }
 
     // =========================================================
@@ -142,6 +163,16 @@
         // 1) Ответ на текущий шаг flow: answer:<stepId>:<value>
         if (payload.indexOf('answer:') === 0) {
             if (flows.handleAnswerPayload(payload)) return;
+        }
+
+        // 1b) Управление flow: назад / пропустить
+        if (payload === 'flow:back') {
+            if (flows.back && flows.back()) return;
+            return showMainMenu(['Возвращаться некуда — мы в самом начале.']);
+        }
+        if (payload === 'flow:skip') {
+            if (flows.skip && flows.skip()) return;
+            return; // нечего пропускать
         }
 
         // 2) Старт категории: cat:<name>
@@ -220,6 +251,28 @@
         render.addUserMessage(text);
         render.clearQuickReplies();
 
+        // ---- Глобальные команды (имеют приоритет над flow) ----
+        var cmd = nlp.detectCommand ? nlp.detectCommand(text) : null;
+        if (cmd === 'menu') {
+            ns.resetFlow();
+            return showMainMenu(['Возвращаемся в главное меню.']);
+        }
+        if (cmd === 'restart') {
+            ns.resetFlow();
+            return showMainMenu(['Начинаем заново. С чего продолжим?']);
+        }
+        if (cmd === 'back') {
+            if (ns.state.category && flows.back && flows.back()) return;
+            return render.senseiSays('Сейчас «назад» некуда — мы в главном меню.', { quickReplies: MAIN_MENU });
+        }
+        if (cmd === 'skip') {
+            if (ns.state.category && flows.skip && flows.skip()) return;
+            return render.senseiSays('Здесь нечего пропускать.');
+        }
+        if (cmd === 'operator') {
+            return dispatchPayload('operator');
+        }
+
         // Если внутри активного flow — отдадим текст движку шагов
         if (ns.state.category && flows.get(ns.state.category)) {
             // Сначала — попытка обработать FAQ-вопрос «вне flow» (если совпал триггер)
@@ -230,6 +283,21 @@
                 });
             }
             if (flows.handleText(text)) return;
+        }
+
+        // ---- Распознавание контакта вне flow ----
+        // Пользователь сам ввёл телефон/email — никогда не сохраняем
+        // молча; вежливо объясняем, что контакт нужен только на «Оформить».
+        var phone = nlp.parsePhone ? nlp.parsePhone(text) : null;
+        var email = nlp.parseEmail ? nlp.parseEmail(text) : null;
+        if (phone || email) {
+            var what = phone ? 'номер телефона' : 'email';
+            return render.senseiSays(
+                'Спасибо, я вижу ваш ' + what + '. Но <b>в свободном чате я его не сохраняю</b> — ' +
+                'это требование 152-ФЗ. Контакт понадобится только на шаге «Оформить заявку», ' +
+                'где будет явное согласие. Сейчас давайте подберём подходящий продукт?',
+                { quickReplies: MAIN_MENU }
+            );
         }
 
         var intent = nlp.detectIntent(text);
@@ -248,7 +316,21 @@
         }
         if (intent.indexOf('category:') === 0) {
             var cat = intent.slice('category:'.length);
-            // Если в тексте есть сумма/срок — предзаполним userProfile/answers через flow
+            // Если в тексте несколько кандидатов с одинаковым весом — уточним.
+            var cands = nlp.detectCategoryCandidates ? nlp.detectCategoryCandidates(text) : [];
+            if (cands.length >= 2 && cands[0].score === cands[1].score) {
+                var top = cands.slice(0, 3);
+                var qrs = top.map(function (c) {
+                    var menuItem = MAIN_MENU.find(function (m) { return m.payload === 'cat:' + c.category; });
+                    return menuItem || { label: c.category, payload: 'cat:' + c.category };
+                });
+                qrs.push({ label: '⬅ В меню', payload: 'menu', variant: 'ghost' });
+                return render.senseiSays(
+                    'Уточните, что именно интересует — нашёл несколько подходящих разделов:',
+                    { quickReplies: qrs }
+                );
+            }
+            // Если в тексте есть сумма/срок — предзаполним через flow
             ns.state.preFill = {
                 amount: nlp.parseAmount(text),
                 termDays: nlp.parseTerm(text),

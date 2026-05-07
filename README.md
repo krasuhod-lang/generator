@@ -34,10 +34,13 @@ python3 -m http.server 8000
 │   ├── state.js            # Глобальное состояние + session_id (UUID)
 │   ├── util.js             # Форматирование, аннуитет, escape
 │   ├── kb.js               # Mock-RAG: знания по всем категориям
-│   ├── nlp.js              # Rule-based intent + parseAmount/parseTerm
+│   ├── nlp.js              # Rule-based intent + parseAmount/Term/Phone/Email/Date + команды
 │   ├── render.js           # Баблы, typing, ачивки, карусель, реестр карточек
-│   ├── dialog.js           # Schema-driven движок шагов
-│   └── api.js              # getOffers / getMagicLink (mock ⇄ /api/v1/*)
+│   ├── dialog.js           # Schema-driven движок шагов (back/skip/preFill/autosave)
+│   ├── api.js              # getOffers / getMagicLink (mock ⇄ /api/v1/*)
+│   ├── consent.js          # Согласия 152-ФЗ / 218-ФЗ + cookie-баннер + прогресс квиза
+│   └── context.js          # Пассивный контекст посетителя (UTM/реферер, регион по TZ,
+│                           #   тип устройства, время суток, returning) — без слежки
 ├── categories/
 │   ├── loans.js            # 💰 Микрозаймы (Sprint 1, baseline)
 │   ├── credits.js          # 🏦 Потребкредиты (§1.2) + калькулятор переплаты
